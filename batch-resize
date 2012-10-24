@@ -1,0 +1,35 @@
+#!/usr/bin/python
+
+import os, argparse, subprocess
+
+parser = argparse.ArgumentParser(description='Batch-resizes images.')
+
+parser.add_argument('images', metavar='IMAGE', type=str, nargs='+',
+                   help='images to resize')
+                   
+parser.add_argument('-s', dest='size', action='store', default="40%",
+                   help='size specification to resize to (ImageMagick convert syntax)')
+                   
+parser.add_argument('-t', dest='type', action='store', default="tif",
+                   help='filetype to convert to (defaults to TIFF)')
+
+args = parser.parse_args()
+options = vars(args)
+
+for image in options['images']:
+	base_name = os.path.splitext(os.path.basename(image))[0]
+	base_path = os.path.dirname(image)
+	target_path = "%s/out" % base_path
+	target_file = "%s/%s.%s" % (target_path, base_name, options['type'])
+	
+	try:
+		os.makedirs(target_path)
+	except:
+		pass
+	
+	result = subprocess.call(["convert", image, "-resize", options['size'], target_file])
+	
+	if result == 0:
+		print "Successfully completed '%s' => '%s'" % (image, target_file)
+	else:
+		print "Failed conversion for '%s' with error code %d." % (image, result)

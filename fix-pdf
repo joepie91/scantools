@@ -1,0 +1,60 @@
+#!/usr/bin/python
+
+import sys, os, argparse
+
+parser = argparse.ArgumentParser(description='Fixes PDFs that are output by tiff2pdf, to get rid of the pink and green color overlay issue.')
+
+parser.add_argument('files', metavar='FILE', type=str, nargs='+',
+                   help='files to fix')
+
+args = parser.parse_args()
+options = vars(args)
+
+def chunked_replace(original_file, target_file, chunk_size, find, replace):
+	original = open(original_file, "rb")
+	target = open(target_file, "wb")
+	position = 0
+	
+	while True:
+		# Read a normally sized chunk.
+		data = str(original.read(chunk_size))
+		
+		# Replace all data immediately available in this read.
+		new_data = data.replace(find, replace)
+		
+		# Check for partial matches. We will loop this to deal with false positives when the partial match
+		#   turned out to be random, but another partial match follows immediately afterwards the original
+		#   read.
+		while True:
+			found = False
+			
+			# We will go from a large substring to a small substring to avoid false positives.
+			# If we went the other way around, repetitive patterns in the substring might cause havoc.
+			for length in reversed(xrange(1, len(find))):
+				if new_data.endswith(find[:length]):
+					# Partial match found.
+					missing_bytes = len(match_string) - length
+					new_data += str(original_file.read(missing_bytes))
+					new_data = new_data.replace(find, replace)
+					found = True
+			
+			if found == False:
+				# No more partial matches to deal with here.
+				break
+		
+		target.write(new_data)
+		
+		if data == "":
+			break
+		else:
+			position += chunk_size
+			
+	original.close()
+	target.close()
+
+for item in options['files']:
+	base_name, extension = os.path.splitext(os.path.basename(item))
+	base_path = os.path.dirname(item)
+	target_file = "%s/%s_fixed.%s" % (base_path, base_name, extension)
+	
+	chunked_replace(item, target_file, 512 * 1024, b"ColorTransform 0", b"ColorTransform 1")

@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import sane, os
+import scantools
+
+scantools.init()
+
+project_name = raw_input("[?] Project name?  ")
+
+if project_name == "":
+	print "No valid project name given!"
+	exit(1)
+
+try:
+	os.makedirs(project_name)
+except OSError, e:
+	print "WARNING: Project exists!"
+
+num = int(raw_input("[?] What is the number of the first scan?  "))
+raw_input("Press enter to start scanning...")
+
+while True:
+	scantools.scan(project_name, num)
+	num = int(raw_input("[+] Page %d finished. What is the number of the next scan?  " % num))
+	raw_input("Press enter to start scanning...")
