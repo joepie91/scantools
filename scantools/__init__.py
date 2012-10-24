@@ -40,9 +40,9 @@ def init(**kwargs):
 		
 	height = raw_input("[?] Height (mm)? [default: 295]  ")
 	if height == "":
-		scanner.br_x = 295
+		scanner.br_y = 295
 	else:
-		scanner.br_x = int(height)
+		scanner.br_y = int(height)
 		
 	scanner.tl_x = 0
 	scanner.tl_y = 0
